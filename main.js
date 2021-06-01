@@ -1,6 +1,6 @@
 // app maintains the entire lifecycle of our application.
 // browserWindow is used to create desktop window.
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, Menu, globalShortcut } = require('electron');
 
 // Setting the environment.
 process.env.NODE_ENV = 'development';
@@ -25,7 +25,39 @@ const createMainWindow = () => {
 
 }
 
-app.on('ready', createMainWindow);
+app.on('ready', () => {
+    createMainWindow();
+
+    const mainMenu = Menu.buildFromTemplate(menu);
+    Menu.setApplicationMenu(mainMenu);
+
+
+    // GLOBAL SHORTCUTS
+    globalShortcut.register('CmdOrCtrl+R', () => {
+        mainWindow.reload();
+    });
+
+    globalShortcut.register(isMac ? 'Command+Alt+I' : 'Ctrl+Shift+I', () => {
+        mainWindow.toggleDevTools();
+    });
+
+    mainWindow.on('ready', () => mainWindow = null);
+});
+
+const menu = [
+    ...(isMac ? [{ role: 'appMenu' }] : []),
+    {
+        label: 'File',
+        submenu: [
+            {
+                label: 'Quit',
+                // accelerator: isMac ? 'Command+W' : 'Ctrl+W',
+                accelerator: 'CmdOrCtrl+W',
+                click: () => app.quit()
+            }
+        ]
+    }
+];
 
 app.on('window-all-closed', () => {
     if (!isMac) {
